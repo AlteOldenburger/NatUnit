@@ -1,0 +1,156 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASARAE
+
+/*  NATUNIT's internal TestCase for ASSERT-ARRAY-A-EQUALS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #ARRAY1 (A/1:*) DYNAMIC
+01 #ARRAY2 (A/1:*) DYNAMIC
+01 #ARRAY3 (A10/1:*)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that two arrays are equal'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+RESIZE ARRAY #ARRAY1 TO (1:3)
+RESIZE ARRAY #ARRAY2 TO (1:3)
+RESIZE ARRAY #ARRAY3 TO (1:3)
+END-SUBROUTINE
+/***********************************************************************
+
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'array should be equal to itself'
+/***********************************************************************
+  #ARRAY1(1) := 'test'
+  #ARRAY1(2) := 'test 123'
+  #ARRAY1(3) := 'test sssd'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY1(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'array should be equal to array with same elements'
+/***********************************************************************
+  #ARRAY1(1) := 'test'
+  #ARRAY1(2) := 'test 123'
+  #ARRAY1(3) := 'test sssd'
+
+  #ARRAY2(1) := #ARRAY1(1)
+  #ARRAY2(2) := #ARRAY1(2)
+  #ARRAY2(3) := #ARRAY1(3)
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY2(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different arrays should not be equal'
+/***********************************************************************
+  #ARRAY1(1) := 'test'
+  #ARRAY1(2) := 'test 123'
+  #ARRAY1(3) := 'test sssd'
+
+  #ARRAY2(1) := 'test2'
+  #ARRAY2(2) := 'test2 asdf'
+  #ARRAY2(3) := 'test sssd'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY2(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'arrays with equal elements at different indices should be equal'
+/***********************************************************************
+  #ARRAY1(1) := 'test'
+  #ARRAY1(2) := 'test 123'
+  #ARRAY1(3) := 'test sssd'
+
+  #ARRAY2(1) := #ARRAY1(2)
+  #ARRAY2(2) := #ARRAY1(3)
+  #ARRAY2(3) := #ARRAY1(1)
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY2(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'arrays of different type with equal elements should be equal'
+/***********************************************************************
+  #ARRAY1(1) := 'test 123'
+  #ARRAY1(2) := 'test'
+  #ARRAY1(3) := 'test sssd'
+
+  COMPRESS #ARRAY1(1) INTO #ARRAY3(1)
+  COMPRESS #ARRAY1(2) INTO #ARRAY3(2)
+  COMPRESS #ARRAY1(3) INTO #ARRAY3(3)
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY3(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'arrays of different type with equal elements at different positions should be equal'
+/***********************************************************************
+  #ARRAY1(1) := 'test 123'
+  #ARRAY1(2) := 'test'
+  #ARRAY1(3) := 'test sssd'
+
+  COMPRESS #ARRAY1(1) INTO #ARRAY3(2)
+  COMPRESS #ARRAY1(2) INTO #ARRAY3(3)
+  COMPRESS #ARRAY1(3) INTO #ARRAY3(1)
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY3(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'arrays with only one different element should not be equal'
+/***********************************************************************
+  #ARRAY1(1) := 'test'
+  #ARRAY1(2) := 'test 123'
+  #ARRAY1(3) := 'test sssd'
+
+  #ARRAY2(1) := #ARRAY1(1)
+  #ARRAY2(2) := 'asdfasdf'
+  #ARRAY2(3) := #ARRAY1(3)
+
+  PERFORM WRAP-ASSERT-ARRAY-A-EQUALS #ARRAY1(*) #ARRAY2(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

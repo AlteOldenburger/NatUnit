@@ -1,0 +1,87 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASBIEQ
+
+/*  NATUNIT's internal TestCase for ASSERT-BINARY-EQUALS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #NUM1 (B4)
+01 #NUM2 (B4)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that two binary values are equal'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'a binary should be equal to itself'
+/***********************************************************************
+  #NUM1 := 1234
+  PERFORM WRAP-ASSERT-BINARY-EQUALS #NUM1 #NUM1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal binaries should be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := 1234
+  PERFORM WRAP-ASSERT-BINARY-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different binaries should not be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := 4321
+  PERFORM WRAP-ASSERT-BINARY-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'slightly different binaries should not be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := 1235
+  PERFORM WRAP-ASSERT-BINARY-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'binaries with opposite sign should not be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-BINARY-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

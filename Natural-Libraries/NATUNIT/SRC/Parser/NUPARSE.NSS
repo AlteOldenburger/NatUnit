@@ -1,0 +1,623 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUPARSE
+
+/*  Parses NATUNIT's TestCases and checks them for validity.
+
+/*  Parameters:
+/*    NUPARSEP.TESTLIB      - The TestCase's library.
+/*    NUPARSEP.TESTCASE     - The TestCase's program name.
+/*    NUPARSEP.SOURCE-LINES - OPTIONAL The TestCase's source code lines.
+
+/*  Returns:
+/*    NUPARSEP.VALID-TESTCASE - Whether or not the TestCase is valid.
+/*    NUPARSEP.MESSAGE        - Error message if TestCase is invalid.
+/*    NUPARSEP.FIXTURE        - Fixture of the valid TestCase.
+/*    NUPARSEP.TESTS          - Tests of the valid TestCase.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUPARSEP
+
+PARAMETER
+01 P-TESTLIB (A8/1:*) OPTIONAL
+01 P-TESTCASE (A8/1:*) OPTIONAL
+
+LOCAL USING NUSRCP
+LOCAL USING NURESP
+LOCAL USING NUTESTP
+LOCAL USING NUCONST
+
+LOCAL USING NUSUITEP
+LOCAL USING NUSUITEL
+
+LOCAL
+
+01 #C-USES-PARAMETERS (I4) CONST <1>
+01 #C-DEFINES-FIXTURE (I4) CONST <2>
+01 #C-INCLUDES-TEMPLATE (I4) CONST <3>
+01 #C-DEFINES-TEST (I4) CONST <4>
+01 #C-CONTAINS-A-TEST (I4) CONST <5>
+01 #C-USES-CONSTANTS (I4) CONST <6>
+01 #C-USES-ASSERT-PARMS (I4) CONST <7>
+
+01 #C-NUMBER-OF-CHECKS (I4) CONST <7>
+
+01 #I (I4)
+01 #J (I4)
+01 #L (I4)
+01 #LINE (A) DYNAMIC
+01 #LINE-LENGTH (I4)
+
+01 #PATTERN (A) DYNAMIC
+01 #PATTERN-LENGTH (I4)
+
+01 #SUBSTRING (A) DYNAMIC
+01 #SUBSTRING-START (I4)
+01 #SUBSTRING-LENGTH (I4)
+
+01 #TEST-INDEX (I4)
+01 #FIRST-TEST-INDEX-IN-TESTCASE (I4)
+01 #LAST-TEST-INDEX-IN-TESTCASE (I4)
+01 #TEST-COUNTER (I4)
+01 #CURRENT-TESTNAME (A) DYNAMIC
+
+01 #CHECKS (1:*)
+  02 #CHECK (L)
+  02 #MESSAGE (A) DYNAMIC
+
+01 #CNT-SOURCE-LINES (I4)
+
+01 #INDEX-TEST-DATA (I4)
+
+01 #TESTLIB (A8)
+01 #TESTCASE (A8)
+01 #FIXTURE (A)DYNAMIC
+
+01 #HAS-SETUP (L)
+01 #HAS-TEARDOWN (L)
+01 #HAS-SETUP-TESTCASE (L)
+01 #HAS-TEARDOWN-TESTCASE (L)
+01 #HAS-IN-ORDER (L)
+01 #CONTAINS-TESTSUITE (L)
+
+01 #I-PARAMETERIZED-TESTS (I4)
+01 #I-TESTS-WITH-DATA (I4)
+01 #I-TESTS-WITH-FILE (I4)
+01 #PARAMETERIZED-TESTS (A/1:*) DYNAMIC
+01 #TESTS-WITH-DATA (A/1:*) DYNAMIC
+01 #TESTS-WITH-FILE (A/1:*) DYNAMIC
+
+01 #SIZE-SUITE-L (I4)
+01 #INDEX-SUITE-L (I4)
+
+01 #SIZE-SUITE-P (I4)
+01 #INDEX-SUITE-P (I4)
+
+01 #TESTNAME-FOUND (L)
+01 #TESTDATA-FOUND (L)
+01 #I-TESTDATA (I4)
+01 #FILENAME (A) DYNAMIC
+
+END-DEFINE
+
+DEFINE SUBROUTINE NU-PARSE
+
+IF NUPARSEP.LIBNAME EQ ' '
+  VALID := FALSE
+  COMPRESS 'No library given for TestCase <' NUPARSEP.TESTCASENAME '>.'
+    INTO NUPARSEP.MESSAGE LEAVING NO
+  ESCAPE ROUTINE
+END-IF
+
+IF P-TESTLIB SPECIFIED
+    AND P-TESTCASE SPECIFIED
+  #SIZE-SUITE-L := *OCC(P-TESTCASE)
+  EXPAND ARRAY NUSUITEL TO (1:#SIZE-SUITE-L)
+  NUSUITEL.TESTLIB(*) := P-TESTLIB(*)
+  NUSUITEL.TESTCASE(*) := P-TESTCASE(*)
+  PERFORM PROCESS-TESTSUITE
+ELSE
+  PERFORM PROCESS-TESTCASE
+END-IF
+
+/***********************************************************************
+DEFINE SUBROUTINE PROCESS-TESTSUITE
+/***********************************************************************
+#SIZE-SUITE-L := *OCC(NUSUITEL.TESTCASE)
+
+FOR #INDEX-SUITE-L = 1 TO #SIZE-SUITE-L
+  #TESTLIB := NUSUITEL.TESTLIB(#INDEX-SUITE-L)
+  #TESTCASE := NUSUITEL.TESTCASE(#INDEX-SUITE-L)
+  PERFORM PARSE-TESTCASE
+END-FOR
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE PROCESS-TESTCASE
+/***********************************************************************
+#TESTLIB := NUPARSEP.LIBNAME
+#TESTCASE := NUPARSEP.TESTCASENAME
+
+PERFORM PARSE-TESTCASE
+
+IF #CONTAINS-TESTSUITE
+  PERFORM PROCESS-TESTSUITE
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE PARSE-TESTCASE
+/***********************************************************************
+PERFORM INIT
+PERFORM READ-SOURCE
+IF NOT VALID
+  ESCAPE ROUTINE
+END-IF
+PERFORM PARSE-SOURCE
+IF NOT VALID
+  ESCAPE ROUTINE
+END-IF
+IF #CONTAINS-TESTSUITE
+  ESCAPE ROUTINE
+END-IF
+
+PERFORM CHECK-VALIDITY
+PERFORM GET-TEST-DATA
+PERFORM SET-SETUP-AND-TEARDOWN
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE INIT
+/***********************************************************************
+RESET #FIXTURE
+  #HAS-SETUP #HAS-TEARDOWN
+  #HAS-SETUP-TESTCASE #HAS-TEARDOWN-TESTCASE
+  #HAS-IN-ORDER
+  #CONTAINS-TESTSUITE
+
+REDUCE ARRAY #PARAMETERIZED-TESTS TO 0
+REDUCE ARRAY #TESTS-WITH-DATA TO 0
+REDUCE ARRAY #TESTS-WITH-FILE TO 0
+RESET #I-PARAMETERIZED-TESTS #I-TESTS-WITH-DATA #I-TESTS-WITH-FILE
+
+#FIRST-TEST-INDEX-IN-TESTCASE := #TEST-COUNTER + 1
+
+EXPAND ARRAY #CHECKS TO (1:#C-NUMBER-OF-CHECKS)
+#CHECKS.#CHECK(*) := FALSE
+
+#MESSAGE(#C-USES-PARAMETERS) := 'TestCase does not use NatUnit parameters (NUTESTP).'
+#MESSAGE(#C-DEFINES-FIXTURE) := 'TestCase does not define a valid fixture.'
+#MESSAGE(#C-INCLUDES-TEMPLATE) := 'TestCase does not include the template routine (NUTCTEMP).'
+#MESSAGE(#C-DEFINES-TEST) := 'TestCase does not define the subroutine TEST.'
+#MESSAGE(#C-CONTAINS-A-TEST) := 'TestCase does not contain any tests.'
+#MESSAGE(#C-USES-CONSTANTS) := 'TestCase does not use NatUnit constants (NUCONST).'
+#MESSAGE(#C-USES-ASSERT-PARMS) := 'TestCase does not use assertion parameters (NUASSP).'
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE READ-SOURCE
+/***********************************************************************
+VALID := TRUE
+RESET INITIAL NUSRCP
+REDUCE ARRAY NUSRCP.LINES TO 0
+NUSRCP.LIBRARYNAME := #TESTLIB
+NUSRCP.MODULENAME := #TESTCASE
+PERFORM NU-GET-TESTCASE-SOURCE NUSRCP
+IF NUSRCP.RC NE 0
+  VALID := FALSE
+  NUPARSEP.MESSAGE := NUSRCP.MESSAGE
+END-IF
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE PARSE-SOURCE
+/***********************************************************************
+#CNT-SOURCE-LINES := *OCCURRENCE(NUSRCP.LINES(*))
+
+FOR #L 1 #CNT-SOURCE-LINES
+  #LINE := *TRIM(NUSRCP.LINES(#L))
+  #LINE-LENGTH := *LENGTH(#LINE)
+
+  IF #LINE-LENGTH LE 1
+    ESCAPE TOP
+  END-IF
+
+  IF NOT #CONTAINS-TESTSUITE
+    #PATTERN := 'PARAMETER USING NUSUITEP'
+    IF #LINE EQ #PATTERN
+      #CONTAINS-TESTSUITE := TRUE
+      PERFORM CREATE-SUITE
+      ESCAPE ROUTINE
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-USES-PARAMETERS)
+    #PATTERN := 'PARAMETER USING NUTESTP'
+    IF #LINE EQ #PATTERN
+      #CHECK(#C-USES-PARAMETERS) := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-USES-CONSTANTS)
+    #PATTERN := 'LOCAL USING NUCONST'
+    IF #LINE EQ #PATTERN
+      #CHECK(#C-USES-CONSTANTS) := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-USES-ASSERT-PARMS)
+    #PATTERN := 'LOCAL USING NUASSP'
+    IF #LINE EQ #PATTERN
+      #CHECK(#C-USES-ASSERT-PARMS) := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-DEFINES-FIXTURE)
+    #PATTERN := 'NUTESTP.FIXTURE := '''
+    #PATTERN-LENGTH := *LENGTH(#PATTERN)
+    IF #LINE-LENGTH GT #PATTERN-LENGTH
+      IF SUBSTRING(#LINE, 1, #PATTERN-LENGTH) EQ #PATTERN
+        #SUBSTRING-START := #PATTERN-LENGTH + 1
+        #SUBSTRING-LENGTH := #LINE-LENGTH - #SUBSTRING-START
+        #SUBSTRING := SUBSTRING(#LINE, #SUBSTRING-START, #SUBSTRING-LENGTH)
+        IF *TRIM(#SUBSTRING) NE ' '
+          #FIXTURE := #SUBSTRING
+          #CHECK(#C-DEFINES-FIXTURE) := TRUE
+          ESCAPE TOP
+        END-IF
+      END-IF
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-INCLUDES-TEMPLATE)
+    #PATTERN := 'INCLUDE NUTCTEMP'
+    IF #LINE EQ #PATTERN
+      #CHECK(#C-INCLUDES-TEMPLATE) := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #CHECK(#C-DEFINES-TEST)
+    #PATTERN := 'DEFINE SUBROUTINE TEST'
+    IF #LINE EQ #PATTERN
+      #CHECK(#C-DEFINES-TEST) := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  #PATTERN := 'IF NUTESTP.TEST EQ '''
+  #PATTERN-LENGTH := *LENGTH(#PATTERN)
+  IF #LINE-LENGTH GT #PATTERN-LENGTH
+    IF SUBSTRING(#LINE, 1, #PATTERN-LENGTH) EQ #PATTERN
+      #SUBSTRING-START := #PATTERN-LENGTH + 1
+      #SUBSTRING-LENGTH := #LINE-LENGTH - #SUBSTRING-START
+      #CURRENT-TESTNAME := SUBSTRING(#LINE, #SUBSTRING-START, #SUBSTRING-LENGTH)
+      IF *TRIM(#CURRENT-TESTNAME) NE ' '
+        IF #CHECK(#C-CONTAINS-A-TEST)
+            AND #CURRENT-TESTNAME EQ NUPARSEP.TEST(*)
+            AND #TESTCASE EQ NUPARSEP.TESTCASE(*)
+          IGNORE
+        ELSE
+          #CHECK(#C-CONTAINS-A-TEST) := TRUE
+          ADD 1 TO #TEST-COUNTER
+          EXPAND ARRAY TESTS TO (1:#TEST-COUNTER)
+          NUPARSEP.TESTLIB(#TEST-COUNTER) := #TESTLIB
+          NUPARSEP.TESTCASE(#TEST-COUNTER) := #TESTCASE
+          NUPARSEP.TEST(#TEST-COUNTER) := #CURRENT-TESTNAME
+          NUPARSEP.FIXTURE(#TEST-COUNTER) := #FIXTURE
+          ESCAPE TOP
+        END-IF
+      END-IF
+    END-IF
+  END-IF
+
+  IF NOT #HAS-SETUP
+    #PATTERN := 'DEFINE SUBROUTINE SETUP'
+    IF #LINE EQ #PATTERN
+      #HAS-SETUP := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #HAS-TEARDOWN
+    #PATTERN := 'DEFINE SUBROUTINE TEARDOWN'
+    IF #LINE EQ #PATTERN
+      #HAS-TEARDOWN := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #HAS-SETUP-TESTCASE
+    #PATTERN := 'DEFINE SUBROUTINE SETUP-TESTCASE'
+    IF #LINE EQ #PATTERN
+      #HAS-SETUP-TESTCASE := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #HAS-TEARDOWN-TESTCASE
+    #PATTERN := 'DEFINE SUBROUTINE TEARDOWN-TESTCASE'
+    IF #LINE EQ #PATTERN
+      #HAS-TEARDOWN-TESTCASE := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF NOT #HAS-IN-ORDER
+    COMPRESS '/*' C-NU-TESTS-IN-ORDER INTO #PATTERN
+    IF #LINE EQ #PATTERN
+      #HAS-IN-ORDER := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  #PATTERN := 'IF NUTESTP.TEST-DATA-PARAM EQ C-NU-PARSE-TEST-DATA'
+  IF #LINE EQ #PATTERN
+    PERFORM ADD-PARAMETERIZED-TEST
+    ESCAPE TOP
+  END-IF
+  COMPRESS '/*' C-NU-PARSE-TEST-DATA INTO #PATTERN
+  IF #LINE EQ #PATTERN
+    PERFORM ADD-TEST-WITH-DATA
+    ESCAPE TOP
+  END-IF
+  COMPRESS '/*' C-NU-PARSE-TEST-FILE INTO #PATTERN
+  #PATTERN-LENGTH := *LENGTH(#PATTERN)
+  IF #LINE-LENGTH GT #PATTERN-LENGTH
+      AND SUBSTRING(#LINE, 1, #PATTERN-LENGTH) EQ #PATTERN
+    PERFORM ADD-TEST-WITH-FILE
+    ESCAPE TOP
+  END-IF
+END-FOR
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE CHECK-VALIDITY
+/***********************************************************************
+VALID := TRUE
+RESET NUPARSEP.MESSAGE
+FOR #I = 1 TO #C-NUMBER-OF-CHECKS
+  IF NOT #CHECK(#I)
+    COMPRESS NUPARSEP.MESSAGE #MESSAGE(#I) INTO NUPARSEP.MESSAGE
+    VALID := FALSE
+  END-IF
+END-FOR
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE GET-TEST-DATA
+/***********************************************************************
+IF *OCC(#PARAMETERIZED-TESTS) EQ 0
+    AND *OCC(#TESTS-WITH-DATA) EQ 0
+    AND *OCC(#TESTS-WITH-FILE) EQ 0
+  ESCAPE ROUTINE
+END-IF
+
+#INDEX-TEST-DATA := #TEST-COUNTER
+
+FOR #I = 1 TO #TEST-COUNTER
+  RESET INITIAL NUTESTP
+
+  IF NUPARSEP.TESTCASE(#I) NE #TESTCASE
+    ESCAPE TOP
+  END-IF
+
+  IF *OCC(#PARAMETERIZED-TESTS) GT 0
+      AND #PARAMETERIZED-TESTS(*) EQ NUPARSEP.TEST(#I)
+    NUTESTP.TESTLIB := NUPARSEP.TESTLIB(#I)
+    NUTESTP.TESTCASE := NUPARSEP.TESTCASE(#I)
+    NUTESTP.TEST := NUPARSEP.TEST(#I)
+    NUTESTP.TEST-DATA-PARAM := C-NU-PARSE-TEST-DATA
+    CALLNAT NUTESTP.TESTCASE NUTESTP
+  END-IF
+  IF *OCC(#TESTS-WITH-DATA) GT 0
+      AND #TESTS-WITH-DATA(*) EQ NUPARSEP.TEST(#I)
+    PERFORM GET-TESTDATA-FROM-SOURCE
+  END-IF
+  IF *OCC(#TESTS-WITH-FILE) GT 0
+      AND #TESTS-WITH-FILE(*) EQ NUPARSEP.TEST(#I)
+    PERFORM GET-TESTDATA-FROM-FILE
+  END-IF
+
+  FOR #L = 1 TO *OCC(NUTESTP.TEST-DATA)
+    IF #L EQ 1
+      NUPARSEP.TEST-DATA-PARAM(#I) := NUTESTP.TEST-DATA(#L)
+    ELSE
+      ADD 1 TO #INDEX-TEST-DATA
+      EXPAND ARRAY NUPARSEP.TESTS TO (1:#INDEX-TEST-DATA)
+      MOVE BY NAME NUPARSEP.TESTS(#I) TO NUPARSEP.TESTS(#INDEX-TEST-DATA)
+      NUPARSEP.TEST-DATA-PARAM(#INDEX-TEST-DATA) := NUTESTP.TEST-DATA(#L)
+    END-IF
+  END-FOR
+
+END-FOR
+
+#TEST-COUNTER := #INDEX-TEST-DATA
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE SET-SETUP-AND-TEARDOWN
+/***********************************************************************
+IF #TEST-COUNTER GT 0
+  FOR #TEST-INDEX #FIRST-TEST-INDEX-IN-TESTCASE #TEST-COUNTER
+    NUPARSEP.HAS-SETUP(#TEST-INDEX) := #HAS-SETUP
+    NUPARSEP.HAS-TEARDOWN(#TEST-INDEX) := #HAS-TEARDOWN
+    NUPARSEP.HAS-SETUP-TESTCASE(#TEST-INDEX) := #HAS-SETUP-TESTCASE
+    NUPARSEP.HAS-TEARDOWN-TESTCASE(#TEST-INDEX) :=  #HAS-TEARDOWN-TESTCASE
+    NUPARSEP.RUN-IN-ORDER(#TEST-INDEX) :=  #HAS-IN-ORDER
+  END-FOR
+END-IF
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE CREATE-SUITE
+/***********************************************************************
+RESET INITIAL NUSUITEP(*)
+
+CALLNAT #TESTCASE NUSUITEP(*)
+
+#SIZE-SUITE-P := *OCC(NUSUITEP.TESTCASE)
+
+FOR #INDEX-SUITE-P = 1 TO #SIZE-SUITE-P
+  ADD 1 TO #SIZE-SUITE-L
+  EXPAND ARRAY NUSUITEL TO (1:#SIZE-SUITE-L)
+  MOVE BY NAME NUSUITEP(#INDEX-SUITE-P) TO NUSUITEL(#SIZE-SUITE-L)
+END-FOR
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-PARAMETERIZED-TEST
+/***********************************************************************
+ADD 1 TO #I-PARAMETERIZED-TESTS
+EXPAND ARRAY #PARAMETERIZED-TESTS TO (1:#I-PARAMETERIZED-TESTS)
+#PARAMETERIZED-TESTS(#I-PARAMETERIZED-TESTS) := #CURRENT-TESTNAME
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-TEST-WITH-DATA
+/***********************************************************************
+ADD 1 TO #I-TESTS-WITH-DATA
+EXPAND ARRAY #TESTS-WITH-DATA TO (1:#I-TESTS-WITH-DATA)
+#TESTS-WITH-DATA(#I-TESTS-WITH-DATA) := #CURRENT-TESTNAME
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-TEST-WITH-FILE
+/***********************************************************************
+ADD 1 TO #I-TESTS-WITH-FILE
+EXPAND ARRAY #TESTS-WITH-FILE TO (1:#I-TESTS-WITH-FILE)
+#TESTS-WITH-FILE(#I-TESTS-WITH-FILE) := #CURRENT-TESTNAME
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE GET-TESTDATA-FROM-SOURCE
+/***********************************************************************
+#TESTNAME-FOUND := FALSE
+#TESTDATA-FOUND := FALSE
+RESET #I-TESTDATA
+REDUCE ARRAY NUTESTP.TEST-DATA TO 0
+FOR #L 1 #CNT-SOURCE-LINES
+  #LINE := *TRIM(NUSRCP.LINES(#L))
+  #LINE-LENGTH := *LENGTH(#LINE)
+
+  COMPRESS 'IF NUTESTP.TEST EQ ''' NUPARSEP.TEST(#I) '''' INTO #PATTERN LEAVING NO
+  IF #LINE EQ #PATTERN
+    #TESTNAME-FOUND := TRUE
+    ESCAPE TOP
+  END-IF
+
+  IF #TESTNAME-FOUND
+    COMPRESS '/*' C-NU-PARSE-TEST-DATA INTO #PATTERN
+    IF #LINE EQ #PATTERN
+      #TESTDATA-FOUND := TRUE
+      ESCAPE TOP
+    END-IF
+  END-IF
+
+  IF #TESTNAME-FOUND AND #TESTDATA-FOUND
+    #PATTERN := '/* '
+    #PATTERN-LENGTH := *LENGTH(#PATTERN)
+    IF #LINE-LENGTH GT #PATTERN-LENGTH
+        AND SUBSTRING(#LINE, 1, #PATTERN-LENGTH) EQ #PATTERN
+      #SUBSTRING-START := #PATTERN-LENGTH + 1
+      #SUBSTRING-LENGTH := #LINE-LENGTH - #SUBSTRING-START + 1
+      ADD 1 TO #I-TESTDATA
+      EXPAND ARRAY NUTESTP.TEST-DATA TO (1:#I-TESTDATA)
+      NUTESTP.TEST-DATA(#I-TESTDATA) := SUBSTRING(#LINE, #SUBSTRING-START, #SUBSTRING-LENGTH)
+    ELSE
+      ESCAPE BOTTOM
+    END-IF
+  END-IF
+END-FOR
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE GET-TESTDATA-FROM-FILE
+/***********************************************************************
+#TESTNAME-FOUND := FALSE
+REDUCE ARRAY NUTESTP.TEST-DATA TO 0
+FOR #L 1 #CNT-SOURCE-LINES
+  #LINE := *TRIM(NUSRCP.LINES(#L))
+  #LINE-LENGTH := *LENGTH(#LINE)
+
+  COMPRESS 'IF NUTESTP.TEST EQ ''' NUPARSEP.TEST(#I) '''' INTO #PATTERN LEAVING NO
+  IF #LINE EQ #PATTERN
+    #TESTNAME-FOUND := TRUE
+    ESCAPE TOP
+  END-IF
+
+  IF #TESTNAME-FOUND
+    COMPRESS '/*' C-NU-PARSE-TEST-FILE INTO #PATTERN
+    #PATTERN-LENGTH := *LENGTH(#PATTERN)
+    IF #LINE-LENGTH GT #PATTERN-LENGTH
+        AND SUBSTRING(#LINE, 1, #PATTERN-LENGTH) EQ #PATTERN
+      #SUBSTRING-START := #PATTERN-LENGTH + 2
+      #SUBSTRING-LENGTH := #LINE-LENGTH - #SUBSTRING-START + 1
+      #FILENAME := SUBSTRING(#LINE, #SUBSTRING-START, #SUBSTRING-LENGTH)
+      NURESP.LIBRARYNAME := #TESTLIB
+      NURESP.RESOURCENAME := #FILENAME
+      PERFORM NU-GET-RESOURCE NURESP
+      IF NURESP.RC EQ 0
+        #I-TESTDATA := *OCC(NURESP.LINES)
+        EXPAND ARRAY NUTESTP.TEST-DATA TO (1:#I-TESTDATA)
+        NUTESTP.TEST-DATA(*) := NURESP.LINES(*)
+      ELSE
+        VALID := FALSE
+        NUPARSEP.MESSAGE := NURESP.MESSAGE
+      END-IF
+    ELSE
+      ESCAPE BOTTOM
+    END-IF
+  END-IF
+END-FOR
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+ON ERROR
+  IF *ERROR-NR EQ 1599 /* File not found
+    VALID := FALSE
+    COMPRESS 'TestCase not found: <' #TESTLIB '.' #TESTCASE '>.'
+      INTO NUPARSEP.MESSAGE LEAVING NO
+  ELSE
+    VALID := FALSE
+    COMPRESS 'TestCase parser error:' *ERROR-NR
+      ': <' #TESTLIB '.' #TESTCASE '>.'
+      INTO NUPARSEP.MESSAGE LEAVING NO
+  END-IF
+  ESCAPE MODULE
+END-ERROR
+/***********************************************************************
+
+END-SUBROUTINE
+
+END
+

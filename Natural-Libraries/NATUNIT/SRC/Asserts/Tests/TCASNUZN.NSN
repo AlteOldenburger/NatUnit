@@ -1,0 +1,70 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASNUZN
+
+/*  NATUNIT's internal TestCase for ASSERT-NUM-NOT-ZERO
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that a number is not zero'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'zero should be zero'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-NUM-NOT-ZERO 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-NOT-ZERO -0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'small number should not be zero'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-NUM-NOT-ZERO 0,000001 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'larger number should not be zero'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-NUM-NOT-ZERO 1,0000 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'negative number should not be zero'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-NUM-NOT-ZERO -123 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

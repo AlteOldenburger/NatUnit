@@ -1,0 +1,62 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: ASSSTRSM
+
+/*  Asserts that two strings are identical (including white space).
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUASSP
+
+PARAMETER
+01 P-EXPECTED (A) DYNAMIC BY VALUE
+01 P-ACTUAL (A) DYNAMIC BY VALUE
+
+LOCAL USING NUCONST
+
+LOCAL
+01 #TEMP (A) DYNAMIC
+01 #LENGTH-EXPECTED (I4)
+01 #LENGTH-ACTUAL (I4)
+
+01 #GIVEN-MESSAGE (A) DYNAMIC
+
+END-DEFINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ASSERT-STRING-SAME
+/***********************************************************************
+
+INCLUDE NUASSHD
+
+IF NUASSP.MESSAGE NE ' '
+  #GIVEN-MESSAGE := NUASSP.MESSAGE
+END-IF
+
+/* EXAMINE and *LENGTH ignore trailing white space
+COMPRESS FULL P-EXPECTED 'A' INTO #TEMP LEAVING NO
+#LENGTH-EXPECTED := *LENGTH(#TEMP) - 1
+COMPRESS FULL P-ACTUAL 'A' INTO #TEMP LEAVING NO
+#LENGTH-ACTUAL := *LENGTH(#TEMP) - 1
+
+IF #LENGTH-ACTUAL NE #LENGTH-EXPECTED
+    OR P-ACTUAL NE P-EXPECTED
+  COMPRESS FULL '<' P-ACTUAL '>' INTO NUASSP.MESSAGE LEAVING NO
+  COMPRESS NUMERIC NUASSP.MESSAGE '(length ' #LENGTH-ACTUAL INTO NUASSP.MESSAGE
+  COMPRESS FULL NUASSP.MESSAGE ') should be <' P-EXPECTED '>' INTO NUASSP.MESSAGE LEAVING NO
+  COMPRESS NUMERIC NUASSP.MESSAGE '(length ' #LENGTH-EXPECTED INTO NUASSP.MESSAGE
+  COMPRESS NUASSP.MESSAGE ').' INTO NUASSP.MESSAGE LEAVING NO
+  COMPRESS #GIVEN-MESSAGE NUASSP.MESSAGE INTO NUASSP.MESSAGE
+  *ERROR-NR := C-NU-ASSERTION-ERROR
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+END
+

@@ -1,0 +1,135 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL USING NUTCP
+
+LOCAL
+
+01 #PROBLEMS (A/1:*) DYNAMIC
+01 #INDEX-TEST (I4)
+01 #CNT-PROBLEMS (I4)
+
+END-DEFINE
+/***********************************************************************
+
+NUTESTP.FIXTURE := 'Should return Problems'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'no problems for Test success'
+/***********************************************************************
+  RESET INITIAL NUTCP #PROBLEMS(*)
+
+  PERFORM ADD-SUCCESS-TEST
+
+  PERFORM NU-GET-PROBLEMS NUTCP #PROBLEMS(*)
+
+  #CNT-PROBLEMS := *OCC(#PROBLEMS)
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 #CNT-PROBLEMS
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'problems for Test skipped, Failure, Error'
+/***********************************************************************
+  RESET INITIAL NUTCP #PROBLEMS(*)
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-SKIPPED-TEST
+  PERFORM ADD-FAILURE-TEST
+  PERFORM ADD-ERROR-TEST
+
+  PERFORM NU-GET-PROBLEMS NUTCP #PROBLEMS(*)
+
+  #CNT-PROBLEMS := *OCC(#PROBLEMS)
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 3 #CNT-PROBLEMS
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP '(S) second Test skipped' #PROBLEMS(1)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP '(F) Test with failure TCGETPRO (4711) failed: <7> should be <5>' #PROBLEMS(2)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP '(E) Test with error TCGETPRO (4711) error: This is the error' #PROBLEMS(3)
+END-IF
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SUCCESS-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := 'NATUNIT'
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'first Test success'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 2
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-SUCCESS
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := ' '
+* NUTCP.TEST-EXECTIME(#INDEX-TEST) := 5
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SKIPPED-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := 'NATUNIT'
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'second Test skipped'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 1
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-SKIPPED
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := ' '
+* NUTCP.TEST-EXECTIME(#INDEX-TEST) := 5
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-ERROR-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := 'NATUNIT'
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'Test with error'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 5
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-ERROR
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := 'TCGETPRO (4711) error: This is the error'
+* NUTCP.TEST-EXECTIME(#INDEX-TEST) := 7
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-FAILURE-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := 'NATUNIT'
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'Test with failure'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 7
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-FAILURE
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := 'TCGETPRO (4711) failed: <7> should be <5>'
+* NUTCP.TEST-EXECTIME(#INDEX-TEST) := 9
+
+END-SUBROUTINE
+
+END
+

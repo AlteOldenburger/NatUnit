@@ -1,0 +1,62 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCNUSEQ
+
+/*  NATUNIT's internal TestCase for the template method.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUASSP
+LOCAL USING NUCONST
+LOCAL USING NUTESTPL
+
+LOCAL
+01 #SEQUENCE (A/1:*) DYNAMIC
+01 #NUM-STEPS (N2)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'Template method'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'SETUP, TEST, and TEARDOWN are called in this order'
+/***********************************************************************
+  NUTESTP-LOCAL.HAS-SETUP := TRUE
+  NUTESTP-LOCAL.HAS-TEARDOWN := TRUE
+  NUTESTP-LOCAL.TEST := 'The first test'
+  CALLNAT 'NUTCTST1' NUTESTP-LOCAL #SEQUENCE(*)
+  NUTESTP-LOCAL.TEST := 'The second test'
+  CALLNAT 'NUTCTST1' NUTESTP-LOCAL #SEQUENCE(*)
+
+  #NUM-STEPS := *OCCURRENCE(#SEQUENCE)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 6 #NUM-STEPS
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'SETUP The first test' #SEQUENCE(1)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TEST The first test' #SEQUENCE(2)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TEARDOWN The first test' #SEQUENCE(3)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'SETUP The second test' #SEQUENCE(4)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TEST The second test' #SEQUENCE(5)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TEARDOWN The second test' #SEQUENCE(6)
+END-IF
+
+END-SUBROUTINE
+
+END
+

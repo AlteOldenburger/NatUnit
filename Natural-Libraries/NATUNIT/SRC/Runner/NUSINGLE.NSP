@@ -1,0 +1,169 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUSINGLE
+
+/*  NATUNIT's program for running a single TestCase.
+
+/***********************************************************************
+DEFINE DATA
+
+LOCAL USING NUCONST
+LOCAL USING NUPARSEP
+LOCAL USING NUTCP
+
+LOCAL
+
+01 USR1040L
+  02 INPUTS
+    03 FUNCTION (A01)
+  02 INPUT-OUTPUTS
+    03 UDB-PARM (N05)
+  02 OUTPUTS
+    03 RESPONSE (I04)
+
+01 #LIB (A8)
+01 #TESTCASE (A8)
+
+01 #UDB-PARM-NEW (N05)
+01 #UDB-PARM-OLD (N05)
+
+END-DEFINE
+/***********************************************************************
+
+SET KEY ALL
+
+IF *DATA < 1
+  #LIB := *LIBRARY-ID
+ELSE
+  INPUT #LIB #TESTCASE
+END-IF
+
+REPEAT
+  IF #LIB NE *LIBRARY-ID
+    STACK TOP DATA #LIB #TESTCASE
+    STACK TOP COMMAND 'NUSINGLE'
+    STACK TOP COMMAND 'LOGON ' #LIB
+    ESCAPE MODULE
+  END-IF
+
+  PERFORM GET-USER-INPUT
+END-REPEAT
+
+/***********************************************************************
+DEFINE SUBROUTINE GET-USER-INPUT
+/***********************************************************************
+
+PERFORM GET-CURRENT-DATABASE
+
+INPUT
+  'Run a single NatUnit TestCase' /
+  /
+  'Current library......:' *LIBRARY-ID (AD=O) /
+  'Current DB-ID (0=ERR):' #UDB-PARM-OLD (AD=OL) /
+  /
+  'Library..............:' #LIB (AD=TIM) /
+  'TestCase.............:' #TESTCASE (AD=TIM) /
+  /
+  'New DB-ID............:' #UDB-PARM-NEW (AD=IML) /
+
+PERFORM HANDLE-USER-INPUT
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE HANDLE-USER-INPUT
+/***********************************************************************
+
+DECIDE ON FIRST VALUE *PF-KEY
+  VALUE 'PF12', 'CLR'
+    ESCAPE MODULE
+  NONE VALUE
+    IGNORE
+END-DECIDE
+
+PERFORM CHANGE-DATABASE
+PERFORM RUN-TESTCASE
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE GET-CURRENT-DATABASE
+/***********************************************************************
+
+RESET #UDB-PARM-NEW #UDB-PARM-OLD
+USR1040L.FUNCTION := 'G'
+CALLNAT 'USR1040N' USR1040L
+IF USR1040L.RESPONSE = 0
+  #UDB-PARM-NEW := USR1040L.UDB-PARM
+  #UDB-PARM-OLD := USR1040L.UDB-PARM
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE CHANGE-DATABASE
+/***********************************************************************
+
+IF #UDB-PARM-OLD = 0 AND #UDB-PARM-NEW > 0
+  REINPUT 'Current database could not be determined (DB-ID 0)'
+END-IF
+
+IF #UDB-PARM-OLD NE #UDB-PARM-NEW
+  USR1040L.FUNCTION := 'S'
+  USR1040L.UDB-PARM := #UDB-PARM-NEW
+  CALLNAT 'USR1040N' USR1040L
+  IF USR1040L.RESPONSE > 0
+    REINPUT 'Failed to change the current database'
+  END-IF
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE RUN-TESTCASE
+/***********************************************************************
+
+IF #LIB EQ ' ' OR #TESTCASE EQ ' '
+  ESCAPE ROUTINE
+END-IF
+
+RESET INITIAL NUPARSEP NUTCP
+
+NUPARSEP.LIBNAME := #LIB
+NUPARSEP.TESTCASENAME := #TESTCASE
+
+PERFORM NU-PARSE NUPARSEP
+ 
+IF NOT NUPARSEP.VALID
+  NUTCP.TC-RESULT := C-NU-ERROR
+  NUTCP.TC-MESSAGE := NUPARSEP.MESSAGE
+ELSE
+  IF *OCCURRENCE(NUPARSEP.TEST) EQ 0
+    NUTCP.TC-RESULT := C-NU-ERROR
+    COMPRESS 'TestCase <' NUPARSEP.TESTCASENAME '> does not contain any tests.' INTO NUTCP.TC-MESSAGE
+  END-IF
+END-IF
+
+IF NUTCP.TC-RESULT NE C-NU-ERROR
+  PERFORM NU-RUN-TESTCASE NUPARSEP NUTCP
+END-IF
+
+PERFORM NU-SHOW-STATISTICS NUTCP
+
+IF NUTCP.TC-RESULT NE C-NU-SUCCESS
+  PERFORM NU-SHOW-PROBLEMS NUTCP
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+END
+

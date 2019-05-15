@@ -1,0 +1,47 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NATUNIT
+
+/*  NATUNIT's main program that runs a TestCase for the current
+/*  user in the current library.
+
+/***********************************************************************
+DEFINE DATA
+
+LOCAL USING NUCONST
+
+LOCAL
+
+01 #TESTCASE-NAME (A8)
+01 #OUTPUT-FILE (A200)
+01 #RC (I4)
+
+/***********************************************************************
+END-DEFINE
+
+SET CONTROL 'N'
+INPUT (LS=250) #TESTCASE-NAME #OUTPUT-FILE
+
+CALLNAT 'NUNITRUN' #TESTCASE-NAME #OUTPUT-FILE #RC
+
+IF #RC EQ C-NU-FAILURE
+    OR #RC EQ C-NU-ERROR
+    OR #RC EQ C-NU-SKIPPED
+  TERMINATE #RC
+END-IF
+
+/***********************************************************************
+ON ERROR
+  SET CONTROL 'N'
+  INPUT 'Error ' *ERROR-NR 'in line ' *ERROR-LINE 'was propagated to' *PROGRAM
+    'while calling TestCase' *LIBRARY-ID '.' #TESTCASE-NAME 
+  TERMINATE C-NU-ERROR
+END-ERROR
+/***********************************************************************
+
+END
+

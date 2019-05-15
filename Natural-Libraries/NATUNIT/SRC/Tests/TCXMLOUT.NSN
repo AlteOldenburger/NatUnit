@@ -1,0 +1,421 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/** TCXMLOUT
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL USING NUTCP
+
+LOCAL
+
+01 #ACTUAL-XML (A) DYNAMIC
+01 #EXPECTED-XML (A) DYNAMIC
+01 #INDEX-TEST (I4)
+01 #CLASSNAME (A) DYNAMIC
+
+/***********************************************************************
+END-DEFINE
+
+NUTESTP.FIXTURE := 'create XML output in JUnit format'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+RESET NUTCP #EXPECTED-XML #ACTUAL-XML
+#CLASSNAME := 'TESTLIB.TCCASE'
+NUTCP.LIBNAME := 'TESTLIB'
+NUTCP.TESTCASENAME := 'TCCASE'
+END-SUBROUTINE
+/***********************************************************************
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one success'
+/***********************************************************************
+  PERFORM ADD-HEADER
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="2" failures="0" errors="0" skipped="0" time="001.100">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one success with prefix'
+/***********************************************************************
+  COMPRESS 'MyPrefix.' #CLASSNAME INTO #CLASSNAME LEAVING NO 
+  PERFORM ADD-HEADER
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="MyPrefix.TESTLIB.TCCASE" tests="2" failures="0" errors="0" skipped="0" time="001.100">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML 'MyPrefix'
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one success and one error'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="3" failures="0" errors="1" skipped="0" time="003.800">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-ERROR-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+END-IF
+* 
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one success, one error, one failure'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="4" failures="1" errors="1" skipped="0" time="004.800">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-FAILURE-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-ERROR-TEST
+  PERFORM ADD-FAILURE-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TESTCASE (109) failed: <7> should be <6>' NUTCP.TEST-MESSAGE(4)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one success, one error, one failure, one skipped'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="5" failures="1" errors="1" skipped="1" time="002.100">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-FAILURE-TESTCASE-XML
+  PERFORM ADD-SKIPPED-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-ERROR-TEST
+  PERFORM ADD-FAILURE-TEST
+  PERFORM ADD-SKIPPED-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TESTCASE (109) failed: <7> should be <6>' NUTCP.TEST-MESSAGE(4)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'second Test < > & skipped' NUTCP.TEST(5)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'one error, one skipped, one failure, one success'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="5" failures="1" errors="1" skipped="1" time="002.000">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-SKIPPED-TESTCASE-XML
+  PERFORM ADD-FAILURE-TESTCASE-XML
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-ERROR-TEST
+  PERFORM ADD-SKIPPED-TEST
+  PERFORM ADD-FAILURE-TEST
+  PERFORM ADD-SUCCESS-TEST
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'second Test < > & skipped' NUTCP.TEST(2)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TESTCASE (109) failed: <7> should be <6>' NUTCP.TEST-MESSAGE(3)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'success, error, failure, skipped, error, skipped, failure, success'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="10" failures="2" errors="2" skipped="2" time="001.100">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-FAILURE-TESTCASE-XML
+  PERFORM ADD-SKIPPED-TESTCASE-XML
+  PERFORM ADD-ERROR-TESTCASE-XML
+  PERFORM ADD-SKIPPED-TESTCASE-XML
+  PERFORM ADD-FAILURE-TESTCASE-XML
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-ERROR-TEST
+  PERFORM ADD-FAILURE-TEST
+  PERFORM ADD-SKIPPED-TEST
+  PERFORM ADD-ERROR-TEST
+  PERFORM ADD-SKIPPED-TEST
+  PERFORM ADD-FAILURE-TEST
+  PERFORM ADD-SUCCESS-TEST
+
+  NUTCP.TESTCASE(6:10) := 'CASETWO'
+  NUTCP.FIXTURE(6:10)  := 'CASETWO < > & Should'
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TESTCASE (109) failed: <7> should be <6>' NUTCP.TEST-MESSAGE(4)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'TESTCASE (109) failed: <7> should be <6>' NUTCP.TEST-MESSAGE(8)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'second Test < > & skipped' NUTCP.TEST(5)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'second Test < > & skipped' NUTCP.TEST(7)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(6)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(7)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(8)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(9)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(10)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'two success'
+/***********************************************************************
+  PERFORM ADD-HEADER
+
+  COMPRESS #EXPECTED-XML
+    '<testsuite name="TESTLIB.TCCASE" tests="4" failures="0" errors="0" skipped="0" time="001.100">' H'0A'
+    INTO #EXPECTED-XML LEAVING NO
+
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+  PERFORM ADD-SUCCESS-TESTCASE-XML
+
+  PERFORM ADD-FOOTER
+
+  PERFORM ADD-SUCCESS-TEST
+  PERFORM ADD-SUCCESS-TEST
+
+  NUTCP.TESTCASE(3:4) := 'CASETWO'
+  NUTCP.FIXTURE(3:4)  := 'CASETWO < > & Should'
+
+  NUTCP.STARTTIME := NUTCP.TEST-STARTTIME(1)
+  NUTCP.ENDTIME := NUTCP.TEST-ENDTIME(#INDEX-TEST)
+  PERFORM NU-CREATE-XML-OUTPUT NUTCP #ACTUAL-XML
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-XML #ACTUAL-XML
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(3)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'CASETWO < > & Should' NUTCP.FIXTURE(4)
+END-IF
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-HEADER
+/***********************************************************************
+COMPRESS '<?xml version="1.0" encoding="ISO-8859-1"?>' H'0A' INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SUCCESS-TESTCASE-XML
+/***********************************************************************
+COMPRESS #EXPECTED-XML
+  '<testcase classname="' #CLASSNAME
+  '" name="first Test success" time="000.500" />' H'0A'
+  '<testcase classname="' #CLASSNAME
+  '" name="another Test success" time="000.500" />' H'0A'
+  INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-ERROR-TESTCASE-XML
+/***********************************************************************
+COMPRESS #EXPECTED-XML
+  '<testcase classname="' #CLASSNAME
+  '" name="Test with error" time="000.700">' H'0A'
+  '<error message="TESTCASE (55) error: 82 Invalid Command"></error>' H'0A'
+  '</testcase>' H'0A'
+  INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-FAILURE-TESTCASE-XML
+/***********************************************************************
+COMPRESS #EXPECTED-XML
+  '<testcase classname="' #CLASSNAME
+  '" name="Test with FAILURE" time="000.900">' H'0A'
+  '<failure message="TESTCASE (109) failed: &lt;7&gt; should be &lt;6&gt;"></failure>' H'0A'
+  '</testcase>' H'0A'
+  INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SKIPPED-TESTCASE-XML
+/***********************************************************************
+COMPRESS #EXPECTED-XML
+  '<testcase classname="' #CLASSNAME
+  '" name="second Test &lt; &gt; &amp; skipped" time="000.200">' H'0A'
+  '<skipped />' H'0A'
+  '</testcase>' H'0A'
+  INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-FOOTER
+/***********************************************************************
+COMPRESS #EXPECTED-XML
+  '</testsuite>' H'0A' INTO #EXPECTED-XML LEAVING NO
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SUCCESS-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := *LIBRARY-ID
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'first Test success'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 2
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-SUCCESS
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := ' '
+NUTCP.TEST-STARTTIME(#INDEX-TEST) := '08:15:45:1'
+NUTCP.TEST-ENDTIME(#INDEX-TEST) := '08:15:45:6'
+NUTCP.FIXTURE(#INDEX-TEST)       := 'Testcase Should'
+
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := *LIBRARY-ID
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'another Test success'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 2
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-SUCCESS
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := ' '
+NUTCP.TEST-STARTTIME(#INDEX-TEST) := '08:15:45:7'
+NUTCP.TEST-ENDTIME(#INDEX-TEST)   := '08:15:46:2'
+NUTCP.FIXTURE(#INDEX-TEST)       := 'Testcase Should'
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SKIPPED-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := *LIBRARY-ID
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'second Test < > & skipped'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 1
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-SKIPPED
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := 'Hello again'
+NUTCP.TEST-STARTTIME(#INDEX-TEST) := '08:15:47:0'
+NUTCP.TEST-ENDTIME(#INDEX-TEST)   := '08:15:47:2'
+NUTCP.FIXTURE(#INDEX-TEST)       := 'Testcase Should'
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-ERROR-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := *LIBRARY-ID
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'Test with error'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 5
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-ERROR
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := 'TESTCASE (55) error: 82 Invalid Command'
+NUTCP.TEST-STARTTIME(#INDEX-TEST) := '08:15:48:2'
+NUTCP.TEST-ENDTIME(#INDEX-TEST)   := '08:15:48:9'
+NUTCP.FIXTURE(#INDEX-TEST)       := 'Testcase Should'
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-FAILURE-TEST
+/***********************************************************************
+#INDEX-TEST := *OCC(NUTCP.TEST)
+ADD 1 TO #INDEX-TEST
+EXPAND ARRAY NUTCP.TESTS TO (1:#INDEX-TEST)
+
+NUTCP.TESTLIB(#INDEX-TEST)       := *LIBRARY-ID
+NUTCP.TESTCASE(#INDEX-TEST)      := 'TESTCASE'
+NUTCP.TEST(#INDEX-TEST)          := 'Test with FAILURE'
+NUTCP.NUM-ASSERTS(#INDEX-TEST)   := 7
+NUTCP.TEST-RESULT(#INDEX-TEST)   := C-NU-FAILURE
+NUTCP.TEST-MESSAGE(#INDEX-TEST)  := 'TESTCASE (109) failed: <7> should be <6>'
+NUTCP.TEST-STARTTIME(#INDEX-TEST) := '08:15:49:0'
+NUTCP.TEST-ENDTIME(#INDEX-TEST)   := '08:15:49:9'
+NUTCP.FIXTURE(#INDEX-TEST)       := 'Testcase Should'
+END-SUBROUTINE
+/***********************************************************************
+
+END

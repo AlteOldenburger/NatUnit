@@ -1,0 +1,58 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCNUCOLL
+
+/*  NATUNIT's internal TestCase for collecting parameters.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUASSP
+LOCAL USING NUCONST
+LOCAL USING NUTESTPL
+LOCAL USING NUCRSTAP
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'Collect results from TestCases'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'Results for single TestCase NUTCTST2'
+/***********************************************************************
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 NUTESTP-LOCAL.NUM-ASSERTS
+  NUTESTP-LOCAL.TEST := 'The first test'
+  CALLNAT 'NUTCTST2' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 NUTESTP-LOCAL.NUM-ASSERTS
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-SUCCESS NUTESTP-LOCAL.RESULT
+
+  NUTESTP-LOCAL.TEST := 'The second test'
+  CALLNAT 'NUTCTST2' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 NUTESTP-LOCAL.NUM-ASSERTS
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-FAILURE NUTESTP-LOCAL.RESULT
+
+  NUTESTP-LOCAL.TEST := 'The third test'
+  CALLNAT 'NUTCTST2' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 1 NUTESTP-LOCAL.NUM-ASSERTS
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-ERROR NUTESTP-LOCAL.RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

@@ -1,0 +1,47 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASFAIL
+
+/*  NATUNIT's internal TestCase for ASSERT-FAIL
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that ASSERT-FAIL always fails'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'should always fail'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-FAIL #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

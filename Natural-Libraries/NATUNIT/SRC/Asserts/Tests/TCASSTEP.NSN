@@ -1,0 +1,82 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASSTEP
+
+/*  NATUNIT's internal TestCase for ASSERT-STRING-EMPTY / ASSERT-STRING-NOT-EMPTY
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that Strings are (not) empty'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'not empty string should not be empty 1'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-EMPTY 'test' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'not empty string should not be empty 2'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-NOT-EMPTY 'test' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'empty string should be empty 1'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-EMPTY ' ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'empty string should be empty 1'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-NOT-EMPTY ' ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string containing only whitespace should be empty 1'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-EMPTY '           ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string containing only whitespace should be empty 2'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-NOT-EMPTY '           ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

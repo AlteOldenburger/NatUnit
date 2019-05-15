@@ -1,0 +1,130 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASSTCA
+
+/*  NATUNIT's internal TestCase for ASSERT-STRING-CONTAINS-ALL
+/*  and ASSERT-STRING-CONTAINS-ANY
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #HAYSTACK (A) DYNAMIC
+01 #NEEDLES (A/1:*) DYNAMIC
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that a string contains all or any of a list of strings'
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+#HAYSTACK := 'This is a test!'
+EXPAND ARRAY #NEEDLES TO (1:1)
+END-SUBROUTINE
+/***********************************************************************
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whitespace, special characters, whole words, and combinations should be found'
+/***********************************************************************
+  EXPAND ARRAY #NEEDLES TO (1:4)
+  #NEEDLES(1) := ' '
+  #NEEDLES(2) := 'This'
+  #NEEDLES(3) := ' is'
+  #NEEDLES(4) := '!'
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'additional elements should not be found'
+/***********************************************************************
+  EXPAND ARRAY #NEEDLES TO (1:3)
+  #NEEDLES(1) := 'This'
+  #NEEDLES(2) := 'extra'
+  #NEEDLES(3) := 'test'
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'the whole string should be found'
+/***********************************************************************
+  #NEEDLES(1) := 'This is a test!'
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'substrings with additional whitespace should not be found'
+/***********************************************************************
+  EXPAND ARRAY #NEEDLES TO (1:3)
+  #NEEDLES(1) := ' This is'
+  #NEEDLES(2) := 'test! '
+  #NEEDLES(3) := '  '
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whole string with additional text should not be found'
+/***********************************************************************
+  COMPRESS #HAYSTACK ' And another one.' INTO #NEEDLES(1)
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whole string should be found in string with additional text'
+/***********************************************************************
+  #NEEDLES(1) := #HAYSTACK
+  COMPRESS #HAYSTACK ' And another one.' INTO #HAYSTACK
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ALL #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS-ANY #HAYSTACK #NEEDLES(*) #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

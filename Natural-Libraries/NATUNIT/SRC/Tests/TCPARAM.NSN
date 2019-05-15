@@ -1,0 +1,113 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCPARAM
+
+/*  TestCase with 2 tests with testdata and different clients.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #X (I4)
+01 #Y (I4)
+01 #Z (I4)
+01 #ACTUAL (I4)
+01 #EXPECTED (I4)
+
+01 #A (A) DYNAMIC
+01 #B (A) DYNAMIC
+01 #ACTUAL-A (A) DYNAMIC
+
+01 #X-A (A) DYNAMIC
+01 #Y-A (A) DYNAMIC
+01 #Z-A (A) DYNAMIC
+01 #EXPECTED-A (A) DYNAMIC
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'parameterized tests'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'test without parameters'
+/***********************************************************************
+  #ACTUAL := 1
+  #EXPECTED := 1
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP #EXPECTED #ACTUAL
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'test with inline parameters'
+/* @TESTDATA
+/* 1;2;3
+/* 4;5;9
+/* 7;8;15
+/***********************************************************************
+  SEPARATE NUTESTP.TEST-DATA-PARAM INTO #X-A #Y-A #EXPECTED-A WITH DELIMITER ';'
+  #X := VAL(#X-A)
+  #Y := VAL(#Y-A)
+  #EXPECTED := VAL(#EXPECTED-A)
+
+  #ACTUAL := #X + #Y
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP #EXPECTED #ACTUAL
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'test with dynamically generated parameters'
+/***********************************************************************
+  IF NUTESTP.TEST-DATA-PARAM EQ C-NU-PARSE-TEST-DATA
+    EXPAND ARRAY NUTESTP.TEST-DATA(*) TO (1:2)
+    NUTESTP.TEST-DATA(1) := '7;8;9;24'
+    NUTESTP.TEST-DATA(2) := '10;11;12;33'
+    ESCAPE ROUTINE
+  END-IF
+
+  PERFORM SPLIT-X-Y-Z
+  #ACTUAL := #X + #Y + #Z
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP #EXPECTED #ACTUAL
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'test with parameters from file'
+/* @TESTFILE TCPARAM1.CSV
+/***********************************************************************
+  SEPARATE NUTESTP.TEST-DATA-PARAM INTO #A #B #EXPECTED-A WITH DELIMITER ';'
+  COMPRESS #A #B INTO #ACTUAL-A
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP #EXPECTED-A #ACTUAL-A
+END-IF
+
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE SPLIT-X-Y-Z
+/***********************************************************************
+SEPARATE NUTESTP.TEST-DATA-PARAM INTO #X-A #Y-A #Z-A #EXPECTED-A WITH DELIMITER ';'
+#X := VAL(#X-A)
+#Y := VAL(#Y-A)
+#Z := VAL(#Z-A)
+#EXPECTED := VAL(#EXPECTED-A)
+END-SUBROUTINE
+/***********************************************************************
+
+END
+

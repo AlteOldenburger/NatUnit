@@ -1,0 +1,75 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASEERR
+
+/*  NATUNIT's internal TestCase for ASSERT-EXPECTED-ERROR
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+LOCAL USING NUTESTPL
+
+LOCAL
+
+01 #EXPECTED-CONTENTS (A/1:*) DYNAMIC
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that a Natural error occurred'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising the expected error should be a success'
+/***********************************************************************
+  NUTESTP-LOCAL.TEST := 'raising the expected error should be a success'
+  CALLNAT 'NUTCERR' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-SUCCESS NUTESTP-LOCAL.RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EMPTY NUASSP NUTESTP-LOCAL.MESSAGE
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising an unexpected error should be a failure'
+/***********************************************************************
+  RESIZE ARRAY #EXPECTED-CONTENTS TO (1:3)
+  #EXPECTED-CONTENTS(1) := 'expected Natural error <933>'
+  #EXPECTED-CONTENTS(2) := 'but was'
+  #EXPECTED-CONTENTS(3) := '934'
+  NUTESTP-LOCAL.TEST := 'raising an unexpected error should be a failure'
+  CALLNAT 'NUTCERR' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-FAILURE NUTESTP-LOCAL.RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-CONTAINS-ALL NUASSP NUTESTP-LOCAL.MESSAGE #EXPECTED-CONTENTS(*)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising no error at all should be a failure'
+/***********************************************************************
+  RESIZE ARRAY #EXPECTED-CONTENTS TO (1:2)
+  #EXPECTED-CONTENTS(1) := 'expected Natural error <933>'
+  #EXPECTED-CONTENTS(2) := 'but no Natural error'
+  NUTESTP-LOCAL.TEST := 'raising no error at all should be a failure'
+  CALLNAT 'NUTCERR' NUTESTP-LOCAL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP C-NU-FAILURE NUTESTP-LOCAL.RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-CONTAINS-ALL NUASSP NUTESTP-LOCAL.MESSAGE #EXPECTED-CONTENTS(*)
+END-IF
+
+END-SUBROUTINE
+
+END
+

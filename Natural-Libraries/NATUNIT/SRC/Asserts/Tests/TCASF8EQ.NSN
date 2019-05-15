@@ -1,0 +1,132 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASF8EQ
+
+/*  NATUNIT's internal TestCase for ASSERT-F8-EQUALS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #NUM1 (F8)
+01 #NUM2 (F8)
+01 #ACCURACY (F8)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that two F8 numbers are equal'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+#ACCURACY := 0,001
+END-SUBROUTINE
+/***********************************************************************
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'a number should be equal to itself'
+/***********************************************************************
+  #NUM1 := 1234,1234
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM1 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers should be equal'
+/***********************************************************************
+  #NUM1 := 1234,1234
+  #NUM2 := 1234,1234
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different numbers should not be equal'
+/***********************************************************************
+  #NUM1 := 1234,1234
+  #NUM2 := 4233,1122
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'slightly different numbers should not be equal'
+/***********************************************************************
+  #ACCURACY := 0,0000001
+  #NUM1 := 1,123456
+  #NUM2 := 1,123457
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers with different decimal places should be equal'
+/***********************************************************************
+  #NUM1 := 1234,00
+  #NUM2 := 1234
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different numbers with different decimal places should not be equal'
+/***********************************************************************
+  #NUM1 := 1234,0001
+  #NUM2 := 1234
+  #ACCURACY := 0,00001
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  #ACCURACY := 0,0001
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  #ACCURACY := 0,001
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal negative numbers should be equal'
+/***********************************************************************
+  #NUM1 := -1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'numbers with opposite sign should not be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-F8-EQUALS #NUM1 #NUM2 #ACCURACY #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

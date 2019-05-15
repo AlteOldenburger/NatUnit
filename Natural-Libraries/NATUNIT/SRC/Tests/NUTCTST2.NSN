@@ -1,0 +1,61 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUTCTST2
+
+/*  NATUNIT's internal dummy TestCase 2.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'Do not call this internal TestCase directly!'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+IGNORE
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE TEARDOWN
+/***********************************************************************
+IGNORE
+END-SUBROUTINE
+/***********************************************************************
+
+DEFINE SUBROUTINE TEST
+
+IF NUTESTP.TEST EQ 'The first test'
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 0
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+IF NUTESTP.TEST EQ 'The second test'
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 1 2
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+IF NUTESTP.TEST EQ 'The third test'
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+  *ERROR-NR := 1599
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+END-SUBROUTINE
+
+END
+

@@ -1,0 +1,30 @@
+DEFINE DATA LOCAL
+/* >Natural Source Header 000000
+/* :Mode S
+/* :CP
+/* <Natural Source Header
+01 C-NU-ASSERTION-ERROR (N4)
+  CONST <1234>
+/***********************************************************************
+01 C-NU-EMPTY (N1)
+  CONST <0>
+01 C-NU-SKIPPED (N1)
+  CONST <1>
+01 C-NU-SUCCESS (N1)
+  CONST <2>
+01 C-NU-FAILURE (N1)
+  CONST <3>
+01 C-NU-ERROR (N1)
+  CONST <4>
+01 C-NU-SETUP-TESTCASE (N1)
+  CONST <5>
+01 C-NU-TEARDOWN-TESTCASE (N1)
+  CONST <6>
+01 C-NU-UNKNOWN (N1)
+  CONST <7>
+/***********************************************************************
+01 C-NU-PARSE-TEST-DATA (A9) CONST <'@TESTDATA'>
+01 C-NU-PARSE-TEST-FILE (A9) CONST <'@TESTFILE'>
+01 C-NU-TESTS-IN-ORDER (A16) CONST <'@RunTestsInOrder'>
+END-DEFINE
+

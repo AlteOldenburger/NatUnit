@@ -1,0 +1,10 @@
+DEFINE DATA LOCAL
+/* >Natural Source Header 000000
+/* :Mode S
+/* :CP
+/* <Natural Source Header
+01 NUSUITEL (1:*)
+  02 TESTLIB (A8)
+  02 TESTCASE (A8)
+END-DEFINE
+

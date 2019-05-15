@@ -1,0 +1,154 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASSTCO
+
+/*  NATUNIT's internal TestCase for ASSERT-STRING-CONTAINS
+/*  and ASSERT-STRING-NOT-CONTAINS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #STRING1 (A) DYNAMIC
+01 #STRING2 (A) DYNAMIC
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that a string contains another string (or not)'
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+#STRING1 := 'This is a test!'
+END-SUBROUTINE
+/***********************************************************************
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whitespace should be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 ' ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 ' ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whole word should be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 'This' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 'This' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'word an whitespace should be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 ' is' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 ' is' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'special character should be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 '!' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 '!' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'the whole string should be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 'This is a test!' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 'This is a test!' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'substring starting with additional whitespace should not be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 ' This is' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 ' This is' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'substring ending with additional whitespace should not be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 'test! ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 'test! ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'multiple whitespace should not be found'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 '  ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 '  ' #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whole string with additional text should not be found'
+/***********************************************************************
+  COMPRESS #STRING1 ' And another one.' INTO #STRING2
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'whole string should be found in string with additional text'
+/***********************************************************************
+  COMPRESS #STRING1 ' And another one.' INTO #STRING2
+
+  PERFORM WRAP-ASSERT-STRING-CONTAINS #STRING2 #STRING1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-STRING-NOT-CONTAINS #STRING2 #STRING1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

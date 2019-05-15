@@ -1,0 +1,12 @@
+DEFINE DATA PARAMETER
+/* >Natural Source Header 000000
+/* :Mode S
+/* :CP
+/* <Natural Source Header
+01 NUASSP
+  02 EXPECTED-ERROR (N4)
+  02 ASSERT-LINE (N8)
+  02 MESSAGE (A) DYNAMIC
+  02 NUM-ASSERTS (I4)
+END-DEFINE
+

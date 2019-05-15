@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>NatUnit</name>
+	<comment>Natural project</comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.softwareag.naturalone.natural.ide.naturalBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.softwareag.naturalone.natural.ide.naturalNature</nature>
+	</natures>
+</projectDescription>

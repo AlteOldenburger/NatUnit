@@ -1,0 +1,208 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+/*  File: TCASARAC
+
+/*  NATUNIT's internal TestCase for ASSERT-ARRAY-A-CONTAINS and
+/*  ASSERT-ARRAY-A-NOT-CONTAINS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+01 #STRING (A) DYNAMIC
+01 #ARRAY (A/1:*) DYNAMIC
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that an alphanumeric array contains a value or not'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'null array and string should yield error'
+  REDUCE ARRAY #ARRAY TO 0
+  RESET #STRING
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'null array should yield error'
+  REDUCE ARRAY #ARRAY TO 0
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'empty array should yield error'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  RESET #ARRAY(*)
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string should not be found in array with one element'
+  RESIZE ARRAY #ARRAY TO (1:1)
+  #ARRAY(1) := 'abc'
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string should not be found in array with two elements'
+  RESIZE ARRAY #ARRAY TO (1:2)
+  #ARRAY(1) := 'abc'
+  #ARRAY(2) := 'cde'
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string should not be found in array with three elements'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'abc'
+  #ARRAY(2) := 'cde'
+  #ARRAY(3) := 'abcd'
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'substring should not be found'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'abc'
+  #ARRAY(2) := 'cde'
+  #ARRAY(3) := 'bcde'
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'existing string should be found at middle position'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'abc'
+  #ARRAY(2) := 'bcd'
+  #ARRAY(3) := 'cde'
+  #STRING := 'bcd'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'existing string should be found at first position'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'bcd'
+  #ARRAY(2) := 'acd'
+  #ARRAY(3) := 'cde'
+  #STRING := 'bcd'
+  
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'existing string should be found at last position'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'acd'
+  #ARRAY(2) := 'acd'
+  #ARRAY(3) := 'bcd'
+  #STRING := 'bcd'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'long string should be found'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  #ARRAY(1) := 'VORNAME ist ein Pflichtfeld'
+  #ARRAY(2) := 'NAME ist ein Pflichtfeld'
+  #ARRAY(3) := 'Pflichtfeld'
+  #STRING := 'NAME ist ein Pflichtfeld'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'string should not be found in an empty array'
+  RESIZE ARRAY #ARRAY TO (1:3)
+  RESET INITIAL #ARRAY(*)
+  #STRING := 'bcd'
+
+  PERFORM WRAP-ASSERT-ARRAY-A-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-ARRAY-A-NOT-CONTAINS #ARRAY(*) #STRING #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

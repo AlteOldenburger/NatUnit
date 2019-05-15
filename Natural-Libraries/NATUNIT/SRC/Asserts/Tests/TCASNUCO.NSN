@@ -1,0 +1,135 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASNUCO
+
+/*  NATUNIT's internal TestCase for ASSERT-NUM-LESS-THAN / ASSERT-NUM-GREATER-THAN
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #NUM1 (N20,6)
+01 #NUM2 (N20,6)
+01 #NUM3 (N8)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that numbers are greater or less than other numbers'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'a number should not be greater or less than itself'
+  #NUM1 := 12345678,1234
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers should not be greater or less than each other'
+  #NUM1 := 12345678,1234
+  #NUM2 := 12345678,1234
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different numbers should be greater or less than each other'
+  #NUM1 := 12345678,1234
+  #NUM2 := 423423,1122
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'marginally different numbers should be greater or less than each other'
+  #NUM1 := 12345678,123456
+  #NUM2 := 12345678,123457
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers of different types should not be greater or less than each other'
+  #NUM1 := 123456
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers with different decimal places should not be greater or less than each other'
+  #NUM1 := 123456,00
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'marginally different numbers of different types should be greater or less than each other'
+  #NUM1 := 123456,0001
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal negative numbers should not be greater or less than each other'
+  #NUM1 := -1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'positive numbers should be greater than negative numbers'
+  #NUM1 := -1234
+  #NUM2 := 1234
+  PERFORM WRAP-ASSERT-NUM-LESS-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+  PERFORM WRAP-ASSERT-NUM-GREATER-THAN #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+/***********************************************************************
+
+END-SUBROUTINE
+
+END
+

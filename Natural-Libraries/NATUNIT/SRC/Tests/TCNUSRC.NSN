@@ -1,0 +1,114 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCNUSRC
+
+/*  NATUNIT's internal TestCase for reading source files.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+LOCAL USING NUSRCP
+LOCAL USING NURESP
+
+LOCAL
+01 #NUM-LINES (N3)
+01 #EXPECTED-MESSAGE (A) DYNAMIC
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'get source for TestCase and Natural resource'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'get source for TCNUSRC'
+/***********************************************************************
+  NUSRCP.LIBRARYNAME := *LIBRARY-ID
+  NUSRCP.MODULENAME := *PROGRAM
+
+  PERFORM NU-GET-TESTCASE-SOURCE NUSRCP
+
+  #NUM-LINES := *OCCURRENCE(NUSRCP.LINES)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 110 #NUM-LINES
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 NUSRCP.RC
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EMPTY NUASSP NUSRCP.MESSAGE
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'DEFINE DATA' NUSRCP.LINES(14)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'LOCAL' NUSRCP.LINES(23)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'NUSRCP.LIBRARYNAME := *LIBRARY-ID' NUSRCP.LINES(38)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'END' NUSRCP.LINES(109)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 
+    '/* this line is deliberately very long to make sure the user exit that reads the source code can cope with long lines ............................................................................................................230'
+    NUSRCP.LINES(57)
+END-IF
+
+/* this line is deliberately very long to make sure the user exit that reads the source code can cope with long lines ............................................................................................................230
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'return error if TestCase not found'
+/***********************************************************************
+  NUSRCP.LIBRARYNAME := *LIBRARY-ID
+  NUSRCP.MODULENAME := 'ZZZZYYYY'
+
+  PERFORM NU-GET-TESTCASE-SOURCE NUSRCP
+
+  #NUM-LINES := *OCCURRENCE(NUSRCP.LINES)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 #NUM-LINES
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-NOT-ZERO NUASSP NUSRCP.RC
+  COMPRESS 'TestCase not found: <' *LIBRARY-ID '.ZZZZYYYY>' INTO #EXPECTED-MESSAGE LEAVING NO
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-CONTAINS NUASSP NUSRCP.MESSAGE #EXPECTED-MESSAGE
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'get source for CSV file'
+/***********************************************************************
+  NURESP.LIBRARYNAME := *LIBRARY-ID
+  NURESP.RESOURCENAME := 'TCPARAM1.CSV'
+
+  PERFORM NU-GET-RESOURCE NURESP
+
+  #NUM-LINES := *OCCURRENCE(NURESP.LINES)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 4 #NUM-LINES
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 NURESP.RC
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EMPTY NUASSP NURESP.MESSAGE
+
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'A;B;A B' NURESP.LINES(1)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'Test;1;Test 1' NURESP.LINES(2)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'Another;one;Another one' NURESP.LINES(3)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-EQUALS NUASSP 'And;the last one;And the last one' NURESP.LINES(4)
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'return error if resource not found'
+/***********************************************************************
+  NURESP.LIBRARYNAME := *LIBRARY-ID
+  NURESP.RESOURCENAME := 'ZZZZYYYY'
+
+  PERFORM NU-GET-RESOURCE NURESP
+
+  #NUM-LINES := *OCCURRENCE(NURESP.LINES)
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 #NUM-LINES
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-NOT-ZERO NUASSP NURESP.RC
+  ASSERT-LINE := *LINE; PERFORM ASSERT-STRING-CONTAINS NUASSP NURESP.MESSAGE 'OPEN ZZZZYYYY'
+END-IF
+
+END-SUBROUTINE
+
+END
+

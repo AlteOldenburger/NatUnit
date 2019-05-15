@@ -1,0 +1,123 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUTCTST4
+
+/*  NATUNIT's internal dummy TestCase 4, has no valid Interface.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+INDEPENDENT
+01 +AIV-CALL-COUNTER (I4)
+01 +AIV-ROUTINE-COUNTER (I4)
+01 +AIV-ROUTINES (A32/1:*)
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #CURRENT-UNIT (A32)
+
+END-DEFINE
+
+ADD 1 TO +AIV-CALL-COUNTER
+
+NUTESTP.FIXTURE := 'Do not call this internal TestCase directly!'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP-TESTCASE
+/***********************************************************************
+#CURRENT-UNIT := *CURRENT-UNIT; PERFORM ADD-SUBROUTINE-CALL
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE TEARDOWN-TESTCASE
+/***********************************************************************
+#CURRENT-UNIT := *CURRENT-UNIT; PERFORM ADD-SUBROUTINE-CALL
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+#CURRENT-UNIT := *CURRENT-UNIT; PERFORM ADD-SUBROUTINE-CALL
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE TEARDOWN
+/***********************************************************************
+#CURRENT-UNIT := *CURRENT-UNIT; PERFORM ADD-SUBROUTINE-CALL
+END-SUBROUTINE
+
+/***********************************************************************
+/* @RunTestsInOrder
+DEFINE SUBROUTINE TEST
+/***********************************************************************
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'The first test'
+/***********************************************************************
+  PERFORM ADD-TEST-CALL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 0 0
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'The second test'
+/***********************************************************************
+  PERFORM ADD-TEST-CALL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 1 2
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'The third test'
+/***********************************************************************
+  PERFORM ADD-TEST-CALL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'The fourth test'
+/***********************************************************************
+  PERFORM ADD-TEST-CALL
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+  ASSERT-LINE := *LINE; PERFORM ASSERT-NUM-EQUALS NUASSP 2 2
+END-IF
+
+END-SUBROUTINE
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-SUBROUTINE-CALL
+/***********************************************************************
+ADD 1 TO +AIV-ROUTINE-COUNTER
+EXPAND ARRAY +AIV-ROUTINES TO (1:+AIV-ROUTINE-COUNTER)
++AIV-ROUTINES(+AIV-ROUTINE-COUNTER) := #CURRENT-UNIT
+END-SUBROUTINE
+/***********************************************************************
+
+/***********************************************************************
+DEFINE SUBROUTINE ADD-TEST-CALL
+/***********************************************************************
+ADD 1 TO +AIV-ROUTINE-COUNTER
+EXPAND ARRAY +AIV-ROUTINES TO (1:+AIV-ROUTINE-COUNTER)
++AIV-ROUTINES(+AIV-ROUTINE-COUNTER) := NUTESTP.TEST
+END-SUBROUTINE
+/***********************************************************************
+
+END
+

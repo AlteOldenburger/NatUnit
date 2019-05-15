@@ -1,0 +1,101 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASSTSA
+
+/*  NATUNIT's internal TestCase for ASSERT-STRING-SAME
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #STRING1 (A) DYNAMIC
+01 #STRING2 (A) DYNAMIC
+01 #STRING3 (A8)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that two strings are the same'
+
+INCLUDE NUTCTEMP
+
+/***********************************************************************
+DEFINE SUBROUTINE SETUP
+/***********************************************************************
+#STRING1 := 'test'
+#STRING2 := 'test2'
+END-SUBROUTINE
+
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'a string should be the same string'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different strings should not be the same'
+/***********************************************************************
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'strings with trailing blanks should not be the same'
+/***********************************************************************
+  #STRING1 := 'test'
+  #STRING2 := 'test '
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'strings with leading blanks should not be the same'
+/***********************************************************************
+  #STRING1 := 'test'
+  #STRING2 := ' test'
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'empty strings should be the same'
+/***********************************************************************
+  RESET INITIAL #STRING1 #STRING2
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'strings with different types should not be the same'
+/***********************************************************************
+  #STRING1 := 'test'
+  #STRING3 := 'test'
+  PERFORM WRAP-ASSERT-STRING-SAME #STRING1 #STRING3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

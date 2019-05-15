@@ -1,0 +1,13 @@
+DEFINE DATA PARAMETER
+/* >Natural Source Header 000000
+/* :Mode S
+/* :CP
+/* <Natural Source Header
+01 NUSRCP
+  02 LIBRARYNAME (A8) /* in
+  02 MODULENAME (A8) /* in
+  02 RC (I4) /* out
+  02 MESSAGE (A) DYNAMIC /* out
+  02 LINES (A/1:*) DYNAMIC /* out
+END-DEFINE
+

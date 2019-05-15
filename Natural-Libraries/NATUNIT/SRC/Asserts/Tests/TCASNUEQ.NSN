@@ -1,0 +1,152 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: TCASNUEQ
+
+/*  NATUNIT's internal TestCase for ASSERT-NUM-EQUALS
+/*  and ASSERT-NUM-NOT-EQUALS
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+LOCAL
+
+01 #NUM1 (N20,6)
+01 #NUM2 (N20,6)
+01 #NUM3 (N8)
+
+01 #ASSERTION-RESULT (L)
+
+END-DEFINE
+
+NUTESTP.FIXTURE := 'assert that two numbers are (not) equal'
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'a number should be equal to itself'
+/***********************************************************************
+  #NUM1 := 12345678,1234
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM1 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM1 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers should be equal'
+/***********************************************************************
+  #NUM1 := 12345678,1234
+  #NUM2 := 12345678,1234
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM2 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different numbers should not be equal'
+/***********************************************************************
+  #NUM1 := 12345678,1234
+  #NUM2 := 423423,1122
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM2 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'slightly different numbers should not be equal'
+/***********************************************************************
+  #NUM1 := 12345678,123456
+  #NUM2 := 12345678,123457
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM2 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers of different type should be equal'
+/***********************************************************************
+  #NUM1 := 123456
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM3 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal numbers with different decimal places should be equal'
+/***********************************************************************
+  #NUM1 := 123456,00
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM3 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'different numbers with different decimal places should not be equal'
+/***********************************************************************
+  #NUM1 := 123456,0001
+  #NUM3 := 123456
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM3 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM3 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'equal negative numbers should be equal'
+/***********************************************************************
+  #NUM1 := -1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM2 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'numbers with opposite sign should not be equal'
+/***********************************************************************
+  #NUM1 := 1234
+  #NUM2 := -1234
+  PERFORM WRAP-ASSERT-NUM-EQUALS #NUM1 #NUM2 0 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-FALSE NUASSP #ASSERTION-RESULT
+
+  PERFORM WRAP-ASSERT-NUM-NOT-EQUALS #NUM1 #NUM2 #ASSERTION-RESULT
+  ASSERT-LINE := *LINE; PERFORM ASSERT-TRUE NUASSP #ASSERTION-RESULT
+END-IF
+
+END-SUBROUTINE
+
+END
+

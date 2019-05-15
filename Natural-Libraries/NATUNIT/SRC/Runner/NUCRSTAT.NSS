@@ -1,0 +1,95 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUCRSTAT
+
+/*  Creates NATUNIT's overall statistics (number of TestCases etc.).
+
+/*  Tags: NATUNIT
+
+/*  Parameters:
+/*    NUTCP - The test results.
+
+/*  Returns:
+/*    NUCRSTAP - Number of TestCases, Tests and Assertions.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTCP
+PARAMETER USING NUCRSTAP
+
+LOCAL USING NUCONST
+
+LOCAL
+
+01 #INDEX (I4)
+
+01 #INDEX-TESTCASES (I4)
+
+01 #TESTCASES (1:*)
+  02 #NAME (A8)
+  02 #FIXTURE (A)DYNAMIC
+  02 #RESULT (I4)
+
+END-DEFINE
+
+/***********************************************************************
+DEFINE SUBROUTINE NU-CREATE-STATISTICS
+/***********************************************************************
+
+NUCRSTAP.NUM-TESTS := *OCC(NUTCP.TEST)
+#INDEX-TESTCASES := 0
+
+FOR #INDEX 1 NUCRSTAP.NUM-TESTS
+
+  IF NUTCP.TEST(#INDEX) NE ' '
+
+    IF #INDEX-TESTCASES NE 0 
+        AND NUTCP.TESTCASE(#INDEX) EQ #NAME(*)
+      #RESULT(#INDEX-TESTCASES) := *MAXVAL(NUTCP.TEST-RESULT(#INDEX), #RESULT(#INDEX-TESTCASES))
+    ELSE
+      ADD 1 TO #INDEX-TESTCASES
+      EXPAND ARRAY #TESTCASES TO (1:#INDEX-TESTCASES)
+      #NAME(#INDEX-TESTCASES) := NUTCP.TESTCASE(#INDEX)
+      #RESULT(#INDEX-TESTCASES) := NUTCP.TEST-RESULT(#INDEX)
+    END-IF
+
+    IF NUTCP.TEST-RESULT(#INDEX) EQ C-NU-ERROR
+      ADD 1 TO NUCRSTAP.NUM-TESTS-ERROR
+    END-IF
+    IF NUTCP.TEST-RESULT(#INDEX) EQ C-NU-FAILURE
+      ADD 1 TO NUCRSTAP.NUM-TESTS-FAILURE
+    END-IF
+    IF NUTCP.TEST-RESULT(#INDEX) EQ C-NU-SKIPPED
+      ADD 1 TO NUCRSTAP.NUM-TESTS-SKIPPED
+    END-IF
+    ADD NUTCP.NUM-ASSERTS(#INDEX) TO NUCRSTAP.NUM-ASSERTS
+  END-IF
+
+END-FOR
+
+NUCRSTAP.NUM-TESTCASES := #INDEX-TESTCASES
+
+FOR #INDEX = 1 TO #INDEX-TESTCASES
+
+  IF #RESULT(#INDEX) EQ C-NU-ERROR
+    ADD 1 TO NUCRSTAP.NUM-TESTCASES-ERROR
+  END-IF
+  IF #RESULT(#INDEX) EQ C-NU-FAILURE
+    ADD 1 TO NUCRSTAP.NUM-TESTCASES-FAILURE
+  END-IF
+  IF #RESULT(#INDEX) EQ C-NU-SKIPPED
+    ADD 1 TO NUCRSTAP.NUM-TESTCASES-SKIPPED
+  END-IF
+
+END-FOR
+
+END-SUBROUTINE
+/***********************************************************************
+
+END
+

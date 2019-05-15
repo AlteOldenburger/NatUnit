@@ -1,0 +1,58 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUTCERR
+
+/*  Non functional TestCase for ASSERT-EXPECTED-ERROR. Should never be
+/*  run directly, but only be called from TCASEERR instead.
+
+/*  Parameters:
+/*    NUTESTP - TestCase parameters.
+
+/*  Returns:
+/*    NUTESTP - TestCase parameters.
+
+/***********************************************************************
+DEFINE DATA
+
+PARAMETER USING NUTESTP
+
+LOCAL USING NUCONST
+LOCAL USING NUASSP
+
+END-DEFINE
+
+INCLUDE NUTCTEMP
+
+DEFINE SUBROUTINE TEST
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising the expected error should be a success'
+/***********************************************************************
+  RESET NUASSP.MESSAGE
+  PERFORM ASSERT-EXPECTED-ERROR NUASSP 933
+  *ERROR-NR := 933
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising an unexpected error should be a failure'
+/***********************************************************************
+  RESET NUASSP.MESSAGE
+  PERFORM ASSERT-EXPECTED-ERROR NUASSP 933
+  *ERROR-NR := 934
+END-IF
+
+/***********************************************************************
+IF NUTESTP.TEST EQ 'raising no error at all should be a failure'
+/***********************************************************************
+  RESET NUASSP.MESSAGE
+  PERFORM ASSERT-EXPECTED-ERROR NUASSP 933
+END-IF
+
+END-SUBROUTINE
+
+END
+

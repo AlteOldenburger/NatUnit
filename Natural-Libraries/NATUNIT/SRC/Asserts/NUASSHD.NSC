@@ -1,0 +1,13 @@
+* >Natural Source Header 000000
+* :Mode S
+* :CP
+* <Natural Source Header
+/***********************************************************************
+
+/*  File: NUASSHD
+
+/*  This head has to be included in every assertion routine.
+
+/***********************************************************************
+ADD 1 TO NUASSP.NUM-ASSERTS
+

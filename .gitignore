@@ -1,0 +1,14 @@
+*.java
+*.log
+*.nat-target
+*.ncvf
+.gitattributes
+.gradle/
+.natural
+.settings/
+branches/
+cache*.properties
+cache_deploy_*.properties
+catall.*
+tags/
+test-reports/
